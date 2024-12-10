@@ -1,0 +1,39 @@
+dependencies:
+  esp_ot_cli_extension:
+    component_hash: null
+    source:
+      path: /home/anderson-liu/work/Luna-controller/components/esp_ot_cli_extension
+      type: local
+    version: 1.1.4
+  esp_rcp_update:
+    component_hash: null
+    source:
+      path: /home/anderson-liu/work/Luna-controller/components/esp_rcp_update
+      type: local
+    version: 1.1.0
+  espressif/esp-serial-flasher:
+    component_hash: dcc42a16712a1a636509cf0bf90e14032d7f2141784b533613b267b6aa318d52
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 0.0.11
+  espressif/iperf:
+    component_hash: d2612130967a5384fe517cc41c27bae8cf71a16a91df98a3610b48e6888ec359
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 0.1.3
+  espressif/mdns:
+    component_hash: 31117d76cae83a6d83ffd7f035f6fdae5bd05b914fc30b641afeb208b84de19a
+    source:
+      service_url: https://api.components.espressif.com/
+      type: service
+    version: 1.3.2
+  idf:
+    component_hash: null
+    source:
+      type: idf
+    version: 5.4.0
+manifest_hash: 475497a628f06c24fcc0a9ead5098d5d736ee5892a1fbb7a661b75ff3fb1ef80
+target: esp32s3
+version: 1.0.0

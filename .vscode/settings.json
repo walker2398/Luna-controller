@@ -1,0 +1,13 @@
+{
+    "idf.adapterTargetName": "esp32s3",
+    "cmake.configureOnOpen": false,
+    "idf.flashType": "UART",
+    "idf.port": "/dev/ttyACM0",
+    "files.associations": {
+        "esp_spiffs.h": "c",
+        "esp_vfs_eventfd.h": "c",
+        "border_router_launch.h": "c",
+        "esp_br_web.h": "c",
+        "esp_coexist.h": "c"
+    }
+}
