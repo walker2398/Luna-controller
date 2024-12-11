@@ -102,7 +102,7 @@ static void ot_br_init(void *ctx)
 #if CONFIG_OPENTHREAD_BR_AUTO_START
 #if !CONFIG_EXAMPLE_CONNECT_WIFI && !CONFIG_EXAMPLE_CONNECT_ETHERNET
 #error No backbone netif!
-#endif
+    #endif
     ESP_ERROR_CHECK(example_connect());
 #if CONFIG_EXAMPLE_CONNECT_WIFI
     ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_MAX_MODEM));
@@ -120,23 +120,29 @@ static void ot_br_init(void *ctx)
 
 void stateCallback(otCommissionerState aState,void *context){
     if (aState == OT_COMMISSIONER_STATE_ACTIVE){
-        printf("staeted");
+        ESP_LOGI(TAG,"commissioner active");
+        otInstance *instance = esp_openthread_get_instance();
+        const char *pskd = "666ABC";
+        ESP_ERROR_CHECK(otCommissionerAddJoiner(instance,NULL,pskd,portMAX_DELAY));
     }
 }
 
 void commissionerJoinerCallback(otCommissionerJoinerEvent event,const otJoinerInfo *joinerInfo,const otExtAddress *joinerId,void *context){
+    printf("")
     if (event == OT_COMMISSIONER_JOINER_END){
         ESP_LOGI(TAG,"joiner completed");
         ESP_LOGI(TAG,"pskd = %s",joinerInfo->mPskd.m8);
     }
+    
 }
 void stateChangeCallback(otChangedFlags flags,void *context){
     otInstance *instance = esp_openthread_get_instance();
     if (flags & OT_CHANGED_THREAD_ROLE){
         ESP_LOGI(TAG,"state changed");
+        otDeviceRole role = otThreadGetDeviceRole(instance);
+        ESP_LOGI(TAG,"%s",otThreadDeviceRoleToString(role));
         if (otThreadGetDeviceRole(instance) == OT_DEVICE_ROLE_LEADER){
-                //otCommissionerStart(instance,*stateCallback,*commissionerJoinerCallback,context);
-            ESP_LOGI(TAG,"can become commissioner");
+            otCommissionerStart(instance,*stateCallback,*commissionerJoinerCallback,context);
 
         }
     }
@@ -170,11 +176,13 @@ static void ot_task_worker(void *ctx)
     xTaskCreate(ot_br_init, "ot_br_init", 6144, NULL, 4, NULL);
 
     otInstance *instance = esp_openthread_get_instance();
-    otSetStateChangedCallback(instance,stateChangeCallback,ctx);
-    otLinkSetPanId(instance,0xFFFF);
-    esp_openthread_lock_acquire(1000);
+    esp_openthread_lock_acquire(portMAX_DELAY);
     otIp6SetEnabled(instance,true);
+    otSetStateChangedCallback(instance,stateChangeCallback,ctx);
     otThreadSetEnabled(instance,true);
+    otLinkSetPanId(instance,0xFFFF);
+    esp_openthread_lock_release();
+
     // Run the main loop
     esp_openthread_launch_mainloop();
 
