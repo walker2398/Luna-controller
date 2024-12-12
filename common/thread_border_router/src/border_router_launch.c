@@ -123,12 +123,15 @@ void stateCallback(otCommissionerState aState,void *context){
         ESP_LOGI(TAG,"commissioner active");
         otInstance *instance = esp_openthread_get_instance();
         const char *pskd = "666ABC";
-        ESP_ERROR_CHECK(otCommissionerAddJoiner(instance,NULL,pskd,portMAX_DELAY));
+        if (otCommissionerAddJoiner(instance,NULL,pskd,100) == OT_ERROR_NONE){
+            ESP_LOGI(TAG,"joiner added");
+        }
+        
     }
 }
 
 void commissionerJoinerCallback(otCommissionerJoinerEvent event,const otJoinerInfo *joinerInfo,const otExtAddress *joinerId,void *context){
-    printf("")
+    printf("joiner state changed");
     if (event == OT_COMMISSIONER_JOINER_END){
         ESP_LOGI(TAG,"joiner completed");
         ESP_LOGI(TAG,"pskd = %s",joinerInfo->mPskd.m8);
@@ -176,11 +179,11 @@ static void ot_task_worker(void *ctx)
     xTaskCreate(ot_br_init, "ot_br_init", 6144, NULL, 4, NULL);
 
     otInstance *instance = esp_openthread_get_instance();
+    otLinkSetPanId(instance,0xFFFF);
     esp_openthread_lock_acquire(portMAX_DELAY);
     otIp6SetEnabled(instance,true);
     otSetStateChangedCallback(instance,stateChangeCallback,ctx);
     otThreadSetEnabled(instance,true);
-    otLinkSetPanId(instance,0xFFFF);
     esp_openthread_lock_release();
 
     // Run the main loop
