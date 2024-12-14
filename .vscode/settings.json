@@ -8,6 +8,8 @@
         "esp_vfs_eventfd.h": "c",
         "border_router_launch.h": "c",
         "esp_br_web.h": "c",
-        "esp_coexist.h": "c"
+        "esp_coexist.h": "c",
+        "esp_openthread_cli.h": "c",
+        "esp_openthread_border_router.h": "c"
     }
 }
