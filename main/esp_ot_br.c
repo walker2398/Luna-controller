@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "sdkconfig.h"
-#include "esp_mac.h"
+
 #include "esp_check.h"
 #include "esp_err.h"
 #include "esp_event.h"
@@ -25,8 +25,7 @@
 #include "nvs_flash.h"
 #include "driver/uart.h"
 #include "freertos/FreeRTOS.h"
-#include "esp_wifi_default.h"
-#include "esp_wifi.h"
+
 #include "border_router_launch.h"
 #include "esp_br_web.h"
 
@@ -56,16 +55,15 @@ static esp_err_t init_spiffs(void)
     return ESP_OK;
 }
 
-
-static void wifi_event_handler(void* arg, esp_event_base_t event_base,int32_t event_id,void* event_data){
-    if (event_id == WIFI_EVENT_AP_STACONNECTED) {
-        wifi_event_ap_staconnected_t* event = (wifi_event_ap_staconnected_t*) event_data;
-        ESP_LOGI(TAG, "station "MACSTR" join, AID=%d",MAC2STR(event->mac), event->aid);
-    } else if (event_id == WIFI_EVENT_AP_STADISCONNECTED) {
-        wifi_event_ap_stadisconnected_t* event = (wifi_event_ap_stadisconnected_t*) event_data;
-        ESP_LOGI(TAG, "station "MACSTR" leave, AID=%d, reason=%d",MAC2STR(event->mac), event->aid, event->reason);
-    }
+#if CONFIG_EXTERNAL_COEX_ENABLE
+static void ot_br_external_coexist_init(void)
+{
+    esp_external_coex_gpio_set_t gpio_pin = ESP_OPENTHREAD_DEFAULT_EXTERNAL_COEX_CONFIG();
+    esp_external_coex_set_work_mode(EXTERNAL_COEX_LEADER_ROLE);
+    ESP_ERROR_CHECK(esp_enable_extern_coex_gpio_pin(CONFIG_EXTERNAL_COEX_WIRE_TYPE, gpio_pin));
 }
+#endif /* CONFIG_EXTERNAL_COEX_ENABLE */
+
 
 
 void app_main(void)
@@ -92,13 +90,11 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    esp_netif_t *esp_netif = esp_netif_create_default_wifi_ap();
-    esp_openthread_set_backbone_netif(esp_netif);
-    wifi_init_config_t wifi_cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&wifi_cfg));
-    esp_event_handler_register(WIFI_EVENT,ESP_EVENT_ANY_ID,&wifi_event_handler,NULL);
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
-    
+#if !CONFIG_OPENTHREAD_BR_AUTO_START
+    esp_ot_wifi_netif_init();
+    esp_openthread_set_backbone_netif(esp_netif_get_handle_from_ifkey("WIFI_STA_DEF"));
+#endif // CONFIG_OPENTHREAD_BR_AUTO_START
+
 
     ESP_ERROR_CHECK(mdns_init());
     ESP_ERROR_CHECK(mdns_hostname_set("esp-ot-br"));
@@ -106,7 +102,7 @@ void app_main(void)
     esp_set_ota_server_cert((char *)server_cert_pem_start);
 #endif
 
-    //esp_br_web_start("/spiffs");
+    esp_br_web_start("/spiffs");
     
     launch_openthread_border_router(&platform_config, &rcp_update_config);
     

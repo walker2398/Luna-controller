@@ -176,13 +176,11 @@ static void ot_task_worker(void *ctx)
     esp_openthread_cli_create_task();
     esp_openthread_lock_release();
 
-    //xTaskCreate(ot_br_init, "ot_br_init", 6144, NULL, 4, NULL);
-    esp_openthread_lock_acquire(portMAX_DELAY);
-    esp_openthread_set_backbone_netif(esp_netif_get_default_netif());
-    ESP_ERROR_CHECK(esp_openthread_border_router_init());
+    xTaskCreate(ot_br_init, "ot_br_init", 6144, NULL, 4, NULL);
 
     otInstance *instance = esp_openthread_get_instance();
     otLinkSetPanId(instance,0xFFFF);
+    esp_openthread_lock_acquire(portMAX_DELAY);
     otIp6SetEnabled(instance,true);
     otSetStateChangedCallback(instance,stateChangeCallback,ctx);
     otThreadSetEnabled(instance,true);
@@ -204,6 +202,6 @@ void launch_openthread_border_router(const esp_openthread_platform_config_t *pla
 {
     s_openthread_platform_config = *platform_config;
     ESP_ERROR_CHECK(esp_rcp_update_init(update_config));
-    
+
     xTaskCreate(ot_task_worker, "ot_br_main", 6144, xTaskGetCurrentTaskHandle(), 5, NULL);
 }
